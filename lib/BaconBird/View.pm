@@ -196,31 +196,40 @@ sub BUILD {
 	$self->keybindings($keybindings);
 	my $form_style = $self->get_form_style;
 
+    my $alternate_style = $self->config->get_value("alternate") || "fg=yellow,bg=red,attr=bold";
+    my $header_style = $self->config->get_value("header") || "bg=green,fg=black,attr=invis";
+    my $tweetview_header_style = $self->config->get_value("tweetview_header") || "bg=black,fg=red,attr=underline";
+    my $tweetview_style = $self->config->get_value("tweetview");
+    my $infoline_style = $self->config->get_value("infoline") || "bg=black,fg=green,attr=invis";
+    my $shorthelp_style = $self->config->get_value("shorthelp") || "bg=green,fg=white,attr=bold";
+    my $tweetview_open_on_start = $self->config->get_value("tweetview_open_on_start") || 0;
+    my $tweetview_height = $self->config->get_value("tweetview_height") || 10;
+
 	$self->f(stfl::create( <<"EOT" ));
 vbox[root]
   hbox
     .expand:0
-    \@style_normal:bg=blue,fg=white,attr=bold
+    \@style_normal:$header_style
     label text[program]:"" .expand:0
     label text[current_view]:"" .expand:h
     label .tie:r text[rateinfo]:"-1/-1" .expand:0
   vbox
-    \@style_1_normal:fg=yellow,bg=red,attr=bold
+    \@style_1_normal:$alternate_style
     .expand:vh
     list[tweets]
-      $form_style
+      $form_style 
     vbox 
-      .display[displayview]:0
+      .display[displayview]:$tweetview_open_on_start
       .expand:0
-      label .expand:0 .height:1 style_normal:bg=blue
+      label .expand:0 .height:1 style_normal:$tweetview_header_style
       textview[tweetview]
-        .expand:v
-      .height[viewheight]:10
+        .expand:v style_normal:$tweetview_style
+      .height[viewheight]:$tweetview_height
   vbox
     .expand:0
     .display:1
-    label text[infoline]:">> " .expand:h style_normal:bg=blue,fg=yellow,attr=bold
-    label text[shorthelp]:"" .expand:h style_normal:bg=blue,fg=white,attr=bold
+    label text[infoline]:">> " .expand:h style_normal:$infoline_style
+    label text[shorthelp]:"" .expand:h style_normal:$shorthelp_style
   hbox[lastline]
     .expand:0
     label text[msg]:"" .expand:h
@@ -1208,7 +1217,6 @@ sub split_lines {
 	$Text::Wrap::columns = $width;
 	my @lines = split("\n", wrap('', '', $text));
 	$Text::Wrap::columns = $old_width;
-
 	return @lines;
 }
 
@@ -1475,7 +1483,7 @@ sub get_form_style {
 
 	$type ||= "tweetid";
 
-	return "style_focus[listfocus]:fg=yellow,bg=blue,attr=bold $keybindings .expand:vh pos_name[$type]: pos[tweetpos]:0 richtext:1"
+	return "style_focus[listfocus]:".($self->config->get_value("highlight") || "fg=yellow,bg=red,attr=bold")." $keybindings .expand:vh pos_name[$type]: pos[tweetpos]:0 richtext:1"
 }
 
 sub call_external_editor {
